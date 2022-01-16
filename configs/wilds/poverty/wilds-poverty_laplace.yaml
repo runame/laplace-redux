@@ -1,0 +1,10 @@
+benchmark: WILDS-poverty
+model_seed: 0 # 1, 2, 3, 4
+method: laplace
+pred_type: glm
+link_approx: mc
+n_samples: 10000
+subset_of_weights: last_layer
+approx_type: ggn
+hessian_structure: full
+prior_precision: 10.0

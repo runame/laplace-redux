@@ -1,0 +1,4 @@
+benchmark: WILDS-amazon
+model_seed: 0 # 1, 2
+method: ensemble
+nr_components: 5

@@ -1,0 +1,6 @@
+laplace_flavor: diag
+hessian_structure: diag
+prior_structure: layerwise
+backend: kazuki
+approx_type: ggn
+subset_of_weights: all

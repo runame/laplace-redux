@@ -1,0 +1,4 @@
+benchmark: WILDS-fmow
+model_seed: 0 # 1, 2
+method: map
+use_temperature_scaling: True

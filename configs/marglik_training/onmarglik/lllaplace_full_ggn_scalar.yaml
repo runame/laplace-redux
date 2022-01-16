@@ -1,0 +1,6 @@
+laplace_flavor: full
+hessian_structure: full
+prior_structure: scalar
+backend: backpack
+approx_type: ggn
+subset_of_weights: last_layer

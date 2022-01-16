@@ -1,0 +1,3 @@
+benchmark: WILDS-civilcomments
+model_seed: 0 # 1, 2, 3, 4
+method: map

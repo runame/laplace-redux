@@ -1,0 +1,6 @@
+laplace_flavor: diag
+hessian_structure: diag
+prior_structure: diagonal
+backend: kazuki
+approx_type: ef
+subset_of_weights: all

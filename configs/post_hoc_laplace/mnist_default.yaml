@@ -1,0 +1,15 @@
+data_root: ./data
+download: False
+models_root: ./models
+method: laplace
+seed: 711
+pred_type: glm
+approx_type: ggn
+link_approx: probit
+hessian_structure: kron
+subset_of_weights: last_layer
+prior_precision: 1.
+optimize_prior_precision: marglik
+model: LeNet
+model_seed: 972394
+batch_size: 512

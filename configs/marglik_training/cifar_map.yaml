@@ -1,0 +1,15 @@
+dataset: CIFAR-10
+model: WRN16-4-fixup
+n_epochs: 100
+batch_size: 128
+lr: 0.1
+lr_min: 0.000001
+optimizer: SGD
+decay: cos
+B: 101
+no_dropout: True
+laplace_flavor: kron
+hessian_structure: kron
+prior_structure: scalar
+approx_type: ggn
+subset_of_weights: all

@@ -1,0 +1,6 @@
+laplace_flavor: diag
+hessian_structure: diag
+prior_structure: scalar
+backend: backpack
+approx_type: ef
+subset_of_weights: last_layer

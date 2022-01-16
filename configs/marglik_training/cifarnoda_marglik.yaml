@@ -1,0 +1,13 @@
+dataset: CIFAR-10-NODA
+model: WRN16-4-fixup
+n_epochs: 100
+batch_size: 128
+lr: 0.1
+lr_min: 0.000001
+lr_hyp: 0.1
+optimizer: SGD
+decay: cos
+F: 5
+K: 100
+B: 20
+no_dropout: True

@@ -1,0 +1,6 @@
+laplace_flavor: kron
+hessian_structure: kron
+prior_structure: scalar
+backend: kazuki
+approx_type: ggn
+subset_of_weights: last_layer
