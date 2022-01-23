@@ -57,6 +57,7 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
                 x, pred_type=pred_type, link_approx=link_approx, n_samples=n_samples)
 
         elif prediction_mode == 'map':
+            # y_prob here is logits since we need them for temp. scaling
             y_prob = model(x).detach()
 
         elif prediction_mode == 'bbb':
@@ -64,7 +65,7 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
 
         elif prediction_mode == 'csghmc':
             y_prob = torch.stack([m(x).softmax(-1) for m in model]).mean(0)
-        
+
         elif prediction_mode == 'swag':
             from baselines.swag.swag import predict_swag
             y_prob = predict_swag(model, x, swag_samples, swag_bn_params)
@@ -95,7 +96,8 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
     # compute some metrics: mean confidence, accuracy and negative log-likelihood
     metrics = {}
     if likelihood == 'classification':
-        c, preds = torch.max(all_y_prob.softmax(dim=1), 1)
+        assert all_y_prob.sum(-1).mean() == 1, '`all_y_prob` are logits but probs. are required'
+        c, preds = torch.max(all_y_prob, 1)
         metrics['conf'] = c.mean().item()
 
     if not no_loss_acc:
