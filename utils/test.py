@@ -8,7 +8,7 @@ from utils.utils import mixture_model_pred
 @torch.no_grad()
 def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=100,
          link_approx='probit', no_loss_acc=False, device='cpu',
-         likelihood="classification", sigma_noise=None):
+         likelihood='classification', sigma_noise=None):
 
     temperature_scaling_model = None
     if prediction_mode in ['map', 'laplace', 'bbb', 'csghmc']:
@@ -23,12 +23,12 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
     elif prediction_mode == 'swag':
         model, swag_samples, swag_bn_params = components[0]
 
-    if likelihood == "regression" and sigma_noise is None:
-        raise ValueError("Must provide sigma_noise for regression!")
+    if likelihood == 'regression' and sigma_noise is None:
+        raise ValueError('Must provide sigma_noise for regression!')
 
-    if likelihood == "classification":
+    if likelihood == 'classification':
         loss_fn = nn.NLLLoss()
-    elif likelihood == "regression":
+    elif likelihood == 'regression':
         loss_fn = nn.GaussianNLLLoss(full=True)
     else:
         raise ValueError(f'Invalid likelihood type {likelihood}')
@@ -57,6 +57,7 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
                 x, pred_type=pred_type, link_approx=link_approx, n_samples=n_samples)
 
         elif prediction_mode == 'map':
+            # y_prob here is logits since we need them for temp. scaling
             y_prob = model(x).detach()
 
         elif prediction_mode == 'bbb':
@@ -64,7 +65,7 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
 
         elif prediction_mode == 'csghmc':
             y_prob = torch.stack([m(x).softmax(-1) for m in model]).mean(0)
-        
+
         elif prediction_mode == 'swag':
             from baselines.swag.swag import predict_swag
             y_prob = predict_swag(model, x, swag_samples, swag_bn_params)
@@ -74,8 +75,8 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
                 'Choose one out of: map, ensemble, laplace, mola, bbb, csghmc, swag, multi-swag.')
 
         if likelihood == 'regression':
-            y_mean = y_prob if prediction_mode == "map" else y_prob[0]
-            y_var = torch.zeros_like(y_mean) if prediction_mode == "map" else y_prob[1].squeeze(2)
+            y_mean = y_prob if prediction_mode == 'map' else y_prob[0]
+            y_var = torch.zeros_like(y_mean) if prediction_mode == 'map' else y_prob[1].squeeze(2)
             all_y_prob.append(y_mean.cpu())
             all_y_var.append(y_var.cpu())
         else:
@@ -86,16 +87,17 @@ def test(components, test_loader, prediction_mode, pred_type='glm', n_samples=10
     all_y_true = torch.cat(all_y_true, dim=0)
 
     if temperature_scaling_model is not None:
-        print("Calibrating predictions using temperature scaling...")
+        print('Calibrating predictions using temperature scaling...')
         all_y_prob = torch.from_numpy(temperature_scaling_model.predict_proba(all_y_prob.numpy()))
 
-    elif prediction_mode == "map" and likelihood == "classification":
+    elif prediction_mode == 'map' and likelihood == 'classification':
         all_y_prob = all_y_prob.softmax(dim=1)
 
     # compute some metrics: mean confidence, accuracy and negative log-likelihood
     metrics = {}
     if likelihood == 'classification':
-        c, preds = torch.max(all_y_prob.softmax(dim=1), 1)
+        assert all_y_prob.sum(-1).mean() == 1, '`all_y_prob` are logits but probs. are required'
+        c, preds = torch.max(all_y_prob, 1)
         metrics['conf'] = c.mean().item()
 
     if not no_loss_acc:
