@@ -85,11 +85,9 @@ def train(args, model, la, train_loader, task_id, device):
     n_steps = args.num_epochs * len(train_loader)
     scheduler = CosineAnnealingLR(optimizer, n_steps, eta_min=args.lr * 1e-3)
 
-    # Set up differentiable inital prior precision + hyper optimizer
+    # Set up initial prior precision
     log_pp_init = np.log(args.prior_prec_init)
     log_prior_prec = util.prior_prec_to_tensor(args, log_pp_init, model)
-    log_prior_prec.requires_grad = True
-    hyper_optimizer = torch.optim.Adam([log_prior_prec], lr=args.lr_hyp)
 
     # Train for multiple epochs on current task
     for epoch in range(args.num_epochs):
@@ -113,26 +111,23 @@ def train(args, model, la, train_loader, task_id, device):
         if (epoch + 1) % 5 != 0:
             continue
 
-        log_prior_prec, marglik = optimize_marglik(
-            args, task_id, model, train_loader, la, log_prior_prec, hyper_optimizer)
+        log_prior_prec, marglik = optimize_marglik(log_prior_prec, la, train_loader)
 
         print(f'Task {task_id+1} epoch {epoch+1} - train loss: {train_loss:.3f}, neg. log marglik: {marglik:.3f}')
 
 
-def optimize_marglik(args, task_id, model, train_loader, la, log_prior_prec, hyper_optimizer):
-    N = len(train_loader.dataset)
-    prior_prec = torch.exp(log_prior_prec)
+def optimize_marglik(log_prior_prec, la, train_loader):
     hyper_la = deepcopy(la)
     hyper_la.prior_mean = la.mean
     # Fit LA for marginal likelihood optimization
     hyper_la.fit(train_loader, override=False)
-    hyper_la.optimize_prior_precision(init_prior_prec=prior_prec.detach())
+    hyper_la.optimize_prior_precision(init_prior_prec=log_prior_prec.exp())
 
     # Include optimized initial prior precision in prior (for regularization)
-    log_prior_prec = hyper_la.prior_precision.log().clone()
+    log_prior_prec = hyper_la.prior_precision.clone().log()
     la.prior_precision = hyper_la.prior_precision.clone()
 
-    return log_prior_prec, -hyper_la.log_marginal_likelihood().detach().cpu().item()
+    return log_prior_prec, -hyper_la.log_marginal_likelihood().detach().item()
 
 
 @torch.no_grad()
@@ -148,7 +143,7 @@ def test(args, laplace, test_loaders, device):
         acc = correct.item() / len(test_loader.dataset)
         test_accs.append(acc)
 
-    test_accs.extend([np.nan for _ in range(args.num_tasks-len(test_accs))])
+    test_accs.extend([np.nan for _ in range(args.num_tasks - len(test_accs))])
 
     return np.array(test_accs)
 
