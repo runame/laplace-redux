@@ -85,10 +85,6 @@ def train(args, model, la, train_loader, task_id, device):
     n_steps = args.num_epochs * len(train_loader)
     scheduler = CosineAnnealingLR(optimizer, n_steps, eta_min=args.lr * 1e-3)
 
-    # Set up initial prior precision
-    log_pp_init = np.log(args.prior_prec_init)
-    log_prior_prec = util.prior_prec_to_tensor(args, log_pp_init, model)
-
     # Train for multiple epochs on current task
     for epoch in range(args.num_epochs):
         train_loss = 0.
@@ -111,23 +107,21 @@ def train(args, model, la, train_loader, task_id, device):
         if (epoch + 1) % 5 != 0:
             continue
 
-        log_prior_prec, marglik = optimize_marglik(log_prior_prec, la, train_loader)
+        marglik = optimize_marglik(la, train_loader)
 
         print(f'Task {task_id+1} epoch {epoch+1} - train loss: {train_loss:.3f}, neg. log marglik: {marglik:.3f}')
 
 
-def optimize_marglik(log_prior_prec, la, train_loader):
+def optimize_marglik(la, train_loader):
+    prior_prec = la.prior_precision
     hyper_la = deepcopy(la)
     hyper_la.prior_mean = la.mean
     # Fit LA for marginal likelihood optimization
     hyper_la.fit(train_loader, override=False)
-    hyper_la.optimize_prior_precision(init_prior_prec=log_prior_prec.exp())
-
+    hyper_la.optimize_prior_precision(init_prior_prec=prior_prec)
     # Include optimized initial prior precision in prior (for regularization)
-    log_prior_prec = hyper_la.prior_precision.clone().log()
     la.prior_precision = hyper_la.prior_precision.clone()
-
-    return log_prior_prec, -hyper_la.log_marginal_likelihood().detach().item()
+    return - hyper_la.log_marginal_likelihood().detach().item()
 
 
 @torch.no_grad()
