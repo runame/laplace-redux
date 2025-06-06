@@ -16,7 +16,7 @@ For running the WILDS experiments, please follow the instructions for installing
 ## Uncertainty Quantification Experiments (Sections 4.2 and 4.3)
 
 The script `uq.py` runs the distribution shift (rotated (F)MNIST, corrupted CIFAR-10) and OOD ((F)MNIST and CIFAR-10 as in-distribution) experiments reported in Section 4.2, as well as the experiments on the WILDS benchmark reported in Section 4.3.
-It expects pre-trained models, which can be downloaded [here](https://nc.mlcloud.uni-tuebingen.de/index.php/s/8fgF2y8SDkSwcsX); they should be placed in the [models](./models/) directory. Due to the large filesize the SWAG models are not included. Please contact us if you are interested in obtaining them.
+It expects pre-trained models, which can be downloaded [here](https://nc.mlcloud.uni-tuebingen.de/index.php/s/8fgF2y8SDkSwcsX); they should be placed in the [models](./models/) directory. Due to the large filesize the SWAG models are not included. ~Please contact us if you are interested in obtaining them.~
 
 To more conveniently run the experiments with the same parameters as we used in the paper, we provide some dedicated config files for the results with the Laplace approximation (`{x/y}` highlights options `x` and `y`); note that you might want to change the `download` flag or the `data_root` in the config file:
 ```
